@@ -21,7 +21,7 @@ export class App {
 
     constructor(URL: string, keys: Array<string>) {
         // Connect to Discord
-        this.discordClient.login(this.config.discord.token)
+        this.discordClient.login(this.config.discord.token).catch(err => {if (err) throw err});
         this.discordGuild = this.discordClient.guilds.get(this.config.discord.guild);
 
         // Create osu! router
