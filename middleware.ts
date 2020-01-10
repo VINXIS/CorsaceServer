@@ -1,10 +1,8 @@
-import * as Discord from "discord.js";
 import { Config } from "../config";
+import { discordGuild } from "./discord"
 
 // General middlewares
 const config = new Config();
-const discordClient = new Discord.Client();
-const discordGuild = discordClient.guilds.get(config.discord.guild);
 
 
 async function isLoggedIn(ctx, next) {

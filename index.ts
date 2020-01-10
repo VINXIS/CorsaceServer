@@ -13,16 +13,11 @@ import discordRouter from "./login/discord"
 import osuRouter from "./login/osu";
 
 export class App {
-    public discordClient = new Discord.Client();
-    public discordGuild: Discord.Guild;
 
     public koa = new Koa();
     private config = new Config();
 
     constructor(URL: string, keys: Array<string>) {
-        // Connect to Discord
-        this.discordClient.login(this.config.discord.token).catch(err => {if (err) throw err});
-        this.discordGuild = this.discordClient.guilds.get(this.config.discord.guild);
 
         // Create osu! router
         const osu = new osuRouter(URL);
