@@ -6,7 +6,7 @@ import BodyParser from 'koa-bodyparser';
 import Mount from 'koa-mount';
 import passport from "koa-passport";
 import Session from 'koa-session';
-import { Config } from "../config"
+import { Config, subConfig } from "../config"
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { User, OAuth } from '../CorsaceModels/user';
 import discordRouter from "./login/discord"
@@ -14,13 +14,14 @@ import osuRouter from "./login/osu";
 
 export class App {
 
-    public koa = new Koa();
-    private config = new Config();
+    public koa = new Koa;
+    private config = new Config;
 
-    constructor(URL: string, keys: Array<string>) {
+    constructor(type: string) {
+        const subconfig = this.config[type] as subConfig
 
         // Create osu! router
-        const osu = new osuRouter(URL);
+        const osu = new osuRouter(this.config[type])
         
         // Connect to DB
         createConnection({
@@ -43,7 +44,7 @@ export class App {
         passport.use(new DiscordStrategy({
             clientID: this.config.discord.clientID,
             clientSecret: this.config.discord.clientSecret,
-            callbackURL: URL + "/api/login/discord/callback",
+            callbackURL: subconfig.publicURL + "/api/login/discord/callback",
         }, async (accessToken, refreshToken, profile, done) => {
             try {
                 let user = await User.findOne({ where: { "discord.userId": profile.id }});
@@ -88,7 +89,7 @@ export class App {
             }        
         });
 
-        this.koa.keys = keys
+        this.koa.keys = subconfig.keys
         this.koa.use(Session(this.koa))
         this.koa.use(BodyParser());
         this.koa.use(passport.initialize());

@@ -1,7 +1,7 @@
 import * as querystring from 'querystring'
 import axios from 'axios'
 import Router from 'koa-router';
-import { Config } from "../../config"
+import { Config, subConfig } from "../../config"
 import { User } from '../../CorsaceModels/user';
 import { Eligibility } from '../../CorsaceModels/MCA_AYIM/eligibility';
 
@@ -16,7 +16,7 @@ const mode = [
 class osuRouter {
     public router = new Router()
 
-    constructor(redirect: string) {
+    constructor(conf: subConfig) {
 
         this.router.get("/", async (ctx, next) => {
             if (!ctx.state.user) {
@@ -25,7 +25,7 @@ class osuRouter {
                 return ctx.redirect("back");
             }
             // Authorization
-            ctx.redirect(`https://osu.ppy.sh/oauth/authorize?response_type=code&client_id=${config.osu.id}&redirect_uri=${encodeURIComponent(redirect + "/api/login/osu/callback")}&scope=identify`)
+            ctx.redirect(`https://osu.ppy.sh/oauth/authorize?response_type=code&client_id=${conf.osuID}&redirect_uri=${encodeURIComponent(conf.publicURL + "/api/login/osu/callback")}&scope=identify`)
         })
 
         this.router.get("/callback", async (ctx) => {
@@ -37,9 +37,9 @@ class osuRouter {
             const data = querystring.stringify({
                 grant_type: 'authorization_code',
                 code: ctx.query.code,
-                redirect_uri: redirect + "/api/login/osu/callback",
-                client_id: config.osu.id,
-                client_secret: config.osu.secret
+                redirect_uri: conf.publicURL + "/api/login/osu/callback",
+                client_id: conf.osuID,
+                client_secret: conf.osuSecret
             });
 
             let osuData;
@@ -78,7 +78,7 @@ class osuRouter {
             user.mca = [];
 
             // MCA data
-            const beatmaps = (await axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osu.v1}&u=${user.osu.userID}`)).data
+            const beatmaps = (await axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${user.osu.userID}`)).data
             if (beatmaps.length != 0) {
                 for (let beatmap of beatmaps) {
                     if (!beatmap.version.includes("\'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
