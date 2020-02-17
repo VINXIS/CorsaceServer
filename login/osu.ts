@@ -1,7 +1,7 @@
 import * as querystring from 'querystring'
 import axios from 'axios'
 import Router from 'koa-router';
-import { Config, subConfig } from "../../config"
+import { Config, SubConfig } from "../../config"
 import { User } from '../../CorsaceModels/user';
 import { Eligibility } from '../../CorsaceModels/MCA_AYIM/eligibility';
 
@@ -16,7 +16,7 @@ const mode = [
 class OsuRouter {
     public router = new Router()
 
-    constructor(conf: subConfig) {
+    constructor(conf: SubConfig) {
 
         this.router.get("/", (ctx) => {
             if (!ctx.state.user) {
