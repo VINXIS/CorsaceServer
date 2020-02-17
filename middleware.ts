@@ -5,13 +5,13 @@ import { discordGuild } from "./discord"
 const config = new Config();
 
 
-function isLoggedIn(ctx, next): void {
+async function isLoggedIn(ctx, next): Promise<void> {
     if (!ctx.state.user) {
         ctx.body = { error: "No user found!" }
         return
     }
 
-   next()
+   await next()
 }
 
 async function isStaff(ctx, next): Promise<void> {

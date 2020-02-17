@@ -35,7 +35,7 @@ export class App {
             "entities": [
                "../CorsaceModels/**/*.ts"
             ],
-        }).then(async (connection) => {
+        }).then((connection) => {
             console.log("Connected to the " + connection.options.database + " database!");
         }).catch(error => console.log("An error has occurred in connecting.", error));
         

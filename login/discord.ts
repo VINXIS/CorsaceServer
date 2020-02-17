@@ -4,9 +4,9 @@ import passport from "koa-passport";
 const discordRouter = new Router();
 
 discordRouter.get("/", passport.authenticate("discord", { scope: ["identify", "guilds.join"]}))
-discordRouter.get("/callback", (ctx) => {
+discordRouter.get("/callback", async (ctx) => {
     // @ts-ignore
-    return passport.authenticate("discord", { scope: ["identify", "guilds.join"], failureRedirect: "/" }, (err, user) => {
+    return await passport.authenticate("discord", { scope: ["identify", "guilds.join"], failureRedirect: "/" }, (err, user) => {
         if (user) {
             // @ts-ignore
             ctx.login(user);

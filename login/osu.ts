@@ -1,3 +1,4 @@
+/* eslint @typescript-eslint/require-await: "off" */
 import * as querystring from 'querystring'
 import axios from 'axios'
 import Router from 'koa-router';
@@ -18,7 +19,7 @@ class OsuRouter {
 
     constructor(conf: SubConfig) {
 
-        this.router.get("/", (ctx) => {
+        this.router.get("/", async (ctx) => {
             if (!ctx.state.user) {
                 return ctx.body = { error: "Login through discord first!" };
             } else if (ctx.state.user.osu.accessToken !== "") {
