@@ -1,6 +1,5 @@
 import "reflect-metadata";
-import * as Discord from "discord.js";
-import {createConnection} from "typeorm";
+import { createConnection } from "typeorm";
 import Koa from 'koa';
 import BodyParser from 'koa-bodyparser';
 import Mount from 'koa-mount';
