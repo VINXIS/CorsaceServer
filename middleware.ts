@@ -5,17 +5,19 @@ import { discordGuild } from "./discord"
 const config = new Config();
 
 
-async function isLoggedIn(ctx, next) {
+function isLoggedIn(ctx, next): void {
     if (!ctx.state.user) {
-        return ctx.body = { error: "No user found!" }
+        ctx.body = { error: "No user found!" }
+        return
     }
 
-   return next()
+   next()
 }
 
-async function isStaff(ctx, next) {
+async function isStaff(ctx, next): Promise<void> {
     if (!ctx.state.user.discord.accessToken) {
-        return ctx.body = { error: "User is not logged in via discord!" }
+        ctx.body = { error: "User is not logged in via discord!" }
+        return 
     }
 
     const member = await discordGuild.fetchMember(ctx.state.user.discord.userID)
@@ -26,24 +28,32 @@ async function isStaff(ctx, next) {
             config.discord.roles.invitational.staff,
             config.discord.roles.mca.staff,
         ]
-        for (let role of roles)
-            if (member.roles.has(role))
+        for (const role of roles)
+            if (member.roles.has(role)) {
                 next()
+                return
+            }
     }
     
-    return ctx.body = { error: "User is not a staff member!" }
+    ctx.body = { error: "User is not a staff member!" }
+    return 
 }
 
 function hasRole(section: string, role: string) {
-    return async (ctx, next) => {
-        if (!ctx.state.user.discord.accessToken)
-            return ctx.body = { error: "User is not logged in via discord!" }
+    return async (ctx, next): Promise<void> => {
+        if (!ctx.state.user.discord.accessToken) {
+            ctx.body = { error: "User is not logged in via discord!" }
+            return
+        }
         
         const member = await discordGuild.fetchMember(ctx.state.user.discord.userID)
-        if (member && (member.roles.has(config.discord.roles[section][role]) || member.roles.has(config.discord.roles.corsace.corsace)))
-            return next()
+        if (member && (member.roles.has(config.discord.roles[section][role]) || member.roles.has(config.discord.roles.corsace.corsace))) {
+            next()    
+            return
+        } 
         
-        return ctx.body = { error: "User does not have the " + role + " role!" }
+        ctx.body = { error: "User does not have the " + role + " role!" }
+        return
     }
 }
 

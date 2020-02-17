@@ -13,12 +13,12 @@ const mode = [
     "mania"
 ]
 
-class osuRouter {
+class OsuRouter {
     public router = new Router()
 
     constructor(conf: subConfig) {
 
-        this.router.get("/", async (ctx, next) => {
+        this.router.get("/", (ctx) => {
             if (!ctx.state.user) {
                 return ctx.body = { error: "Login through discord first!" };
             } else if (ctx.state.user.osu.accessToken !== "") {
@@ -55,7 +55,7 @@ class osuRouter {
             }
 
             // Input tokens
-            let user: User = ctx.state.user
+            const user: User = ctx.state.user
             user.osu.accessToken = osuData.access_token
             user.osu.refreshToken = osuData.refresh_token
 
@@ -80,9 +80,8 @@ class osuRouter {
             // MCA data
             const beatmaps = (await axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${user.osu.userID}`)).data
             if (beatmaps.length != 0) {
-                for (let beatmap of beatmaps) {
-                    if (!beatmap.version.includes("\'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
-                        // @ts-ignore
+                for (const beatmap of beatmaps) {
+                    if (!beatmap.version.includes("'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
                         const date = new Date(beatmap.approved_date)
                         const year = date.getUTCFullYear();
                         let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { id: user.id } }});
@@ -111,4 +110,4 @@ class osuRouter {
     }
 }
 
-export default osuRouter
+export default OsuRouter

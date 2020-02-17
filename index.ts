@@ -9,7 +9,7 @@ import { Config, subConfig } from "../config"
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { User, OAuth } from '../CorsaceModels/user';
 import discordRouter from "./login/discord"
-import osuRouter from "./login/osu";
+import OsuRouter from "./login/osu";
 
 export class App {
 
@@ -20,7 +20,7 @@ export class App {
         const subconfig = this.config[type] as subConfig
 
         // Create osu! router
-        const osu = new osuRouter(this.config[type])
+        const osu = new OsuRouter(this.config[type])
         
         // Connect to DB
         createConnection({
