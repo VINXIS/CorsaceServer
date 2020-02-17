@@ -50,9 +50,9 @@ export class App {
                 let user = await User.findOne({ where: { "discord.userId": profile.id }});
                 if (!user)
                 {
-                    user = new User();
-                    user.discord = new OAuth();
-                    user.discord.dateAdded = new Date();
+                    user = new User;
+                    user.discord = new OAuth;
+                    user.discord.dateAdded = new Date;
                 }
         
                 user.discord.userID = profile.id
