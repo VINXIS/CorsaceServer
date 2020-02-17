@@ -5,7 +5,7 @@ import BodyParser from 'koa-bodyparser';
 import Mount from 'koa-mount';
 import passport from "koa-passport";
 import Session from 'koa-session';
-import { Config, subConfig } from "../config"
+import { Config, SubConfig } from "../config"
 import { Strategy as DiscordStrategy } from "passport-discord";
 import { User, OAuth } from '../CorsaceModels/user';
 import discordRouter from "./login/discord"
@@ -17,7 +17,7 @@ export class App {
     private config = new Config;
 
     constructor(type: string) {
-        const subconfig = this.config[type] as subConfig
+        const subconfig = this.config[type] as SubConfig
 
         // Create osu! router
         const osu = new OsuRouter(this.config[type])
