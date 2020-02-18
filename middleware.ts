@@ -30,7 +30,7 @@ async function isStaff(ctx, next): Promise<void> {
         ]
         for (const role of roles)
             if (member.roles.has(role)) {
-                next()
+                await next()
                 return
             }
     }
@@ -48,7 +48,7 @@ function hasRole(section: string, role: string) {
         
         const member = await discordGuild.fetchMember(ctx.state.user.discord.userID)
         if (member && (member.roles.has(config.discord.roles[section][role]) || member.roles.has(config.discord.roles.corsace.corsace))) {
-            next()    
+            await next()    
             return
         } 
         
