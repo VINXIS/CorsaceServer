@@ -69,7 +69,7 @@ export class App {
             }
         }));
         passport.serializeUser((user: User, done) => {
-            done(null, user.id);
+            done(null, user.ID);
         });
         passport.deserializeUser(async (id, done) => {
             try {

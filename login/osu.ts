@@ -85,7 +85,7 @@ class OsuRouter {
                     if (!beatmap.version.includes("'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
                         const date = new Date(beatmap.approved_date)
                         const year = date.getUTCFullYear();
-                        let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { id: user.id } }});
+                        let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { id: user.ID } }});
                         if (!eligibility) {
                             eligibility = new Eligibility();
                             eligibility.year = year
