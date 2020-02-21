@@ -59,4 +59,4 @@ function hasRole(section: string, role: string) {
 
 const isCorsace = hasRole("corsace", "corsace")
 
-export { isLoggedIn, isStaff, isCorsace }
+export { isLoggedIn, isStaff, isCorsace, hasRole }
