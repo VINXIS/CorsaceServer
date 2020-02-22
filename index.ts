@@ -6,10 +6,12 @@ import Mount from 'koa-mount';
 import passport from "koa-passport";
 import Session from 'koa-session';
 import { Config, SubConfig } from "../config"
+import OAuth2Strategy from "passport-oauth2";
 import { Strategy as DiscordStrategy } from "passport-discord";
-import { User, OAuth } from '../CorsaceModels/user';
+import { User } from '../CorsaceModels/user';
 import discordRouter from "./login/discord"
-import OsuRouter from "./login/osu";
+import { discordPassport, osuPassport } from "./passportFunctions";
+import osuRouter from "./login/osu";
 
 export class App {
 
@@ -18,9 +20,6 @@ export class App {
 
     constructor(type: string) {
         const subconfig = this.config[type] as SubConfig
-
-        // Create osu! router
-        const osu = new OsuRouter(this.config[type])
         
         // Connect to DB
         createConnection({
@@ -44,30 +43,16 @@ export class App {
             clientID: this.config.discord.clientID,
             clientSecret: this.config.discord.clientSecret,
             callbackURL: subconfig.publicURL + "/api/login/discord/callback",
-        }, async (accessToken, refreshToken, profile, done) => {
-            try {
-                let user = await User.findOne({ where: { "discord.userId": profile.id }});
-                if (!user)
-                {
-                    user = new User;
-                    user.discord = new OAuth;
-                    user.discord.dateAdded = new Date;
-                }
-        
-                user.discord.userID = profile.id
-                user.discord.username = profile.username
-                user.discord.accessToken = accessToken;
-                user.discord.refreshToken = refreshToken;
-                user.discord.avatar = profile.avatar;
-                user.lastLogin = user.discord.lastVerified = new Date();
+        }, discordPassport));
 
-                await user.save();
-                done(null, user);
-            } catch(error) {
-                console.log("Error while authenticating user via Discord", error);
-                done(error, null);
-            }
-        }));
+        passport.use(new OAuth2Strategy({
+            authorizationURL: 'https://osu.ppy.sh/oauth/authorize',
+            tokenURL: 'https://osu.ppy.sh/oauth/token',
+            clientID: subconfig.osuID.toString(),
+            clientSecret: subconfig.osuSecret,
+            callbackURL: subconfig.publicURL + "/api/login/osu/callback",
+        }, osuPassport));
+    
         passport.serializeUser((user: User, done) => {
             done(null, user.ID);
         });
@@ -94,6 +79,6 @@ export class App {
         this.koa.use(passport.initialize());
         this.koa.use(passport.session());
         this.koa.use(Mount("/login/discord", discordRouter.routes()));
-        this.koa.use(Mount("/login/osu", osu.router.routes()));
+        this.koa.use(Mount("/login/osu", osuRouter.routes()));
     }
 }
