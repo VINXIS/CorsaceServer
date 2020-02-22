@@ -37,6 +37,7 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
 }
 
 async function osuPassport(accessToken: string, refreshToken: string, profile: any, done: OAuth2Strategy.VerifyCallback): Promise<void> {
+    console.log(profile)
     const config = new Config();
     const mode = [
         "standard",
@@ -70,6 +71,7 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
         user.osu.refreshToken = refreshToken;
         user.osu.dateAdded = user.osu.lastVerified = user.lastLogin = user.registered = new Date();
         user.mca = [];
+        await user.save();
 
         // MCA data
         const beatmaps = (await Axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${user.osu.userID}`)).data
@@ -98,7 +100,6 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
             }
         }
 
-        await user.save();
         done(null, user);
     } catch (error) {
         done(error, null);

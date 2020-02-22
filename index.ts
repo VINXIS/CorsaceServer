@@ -48,8 +48,8 @@ export class App {
         passport.use(new OAuth2Strategy({
             authorizationURL: 'https://osu.ppy.sh/oauth/authorize',
             tokenURL: 'https://osu.ppy.sh/oauth/token',
-            clientID: this.config.ayim.osuID.toString(),
-            clientSecret: this.config.ayim.osuSecret,
+            clientID: subconfig.osuID.toString(),
+            clientSecret: subconfig.osuSecret,
             callbackURL: subconfig.publicURL + "/api/login/osu/callback",
         }, osuPassport));
     
