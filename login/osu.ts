@@ -41,7 +41,6 @@ osuRouter.get("/callback", async (ctx, next) => {
                 const date = new Date(beatmap.approved_date)
                 const year = date.getUTCFullYear();
                 let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { ID: ctx.state.user.ID } }});
-                console.log(!eligibility)
                 if (!eligibility) {
                     eligibility = new Eligibility();
                     eligibility.year = year
