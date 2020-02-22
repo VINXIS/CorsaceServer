@@ -14,12 +14,25 @@ async function isLoggedIn(ctx, next): Promise<void> {
    await next()
 }
 
-async function isStaff(ctx, next): Promise<void> {
+async function isLoggedInDiscord(ctx, next): Promise<void> {
     if (!ctx.state.user.discord.accessToken) {
         ctx.body = { error: "User is not logged in via discord!" }
         return 
     }
 
+   await next()
+}
+
+async function isLoggedInOsu(ctx, next): Promise<void> {
+    if (!ctx.state.user.osu.accessToken) {
+        ctx.body = { error: "User is not logged in via osu!" }
+        return 
+    }
+
+   await next()
+}
+
+async function isStaff(ctx, next): Promise<void> {
     const member = await discordGuild.fetchMember(ctx.state.user.discord.userID)
     if (member) {
         const roles = [
@@ -41,11 +54,6 @@ async function isStaff(ctx, next): Promise<void> {
 
 function hasRole(section: string, role: string) {
     return async (ctx, next): Promise<void> => {
-        if (!ctx.state.user.discord.accessToken) {
-            ctx.body = { error: "User is not logged in via discord!" }
-            return
-        }
-        
         const member = await discordGuild.fetchMember(ctx.state.user.discord.userID)
         if (member && (member.roles.has(config.discord.roles[section][role]) || member.roles.has(config.discord.roles.corsace.corsace))) {
             await next()    
@@ -59,4 +67,4 @@ function hasRole(section: string, role: string) {
 
 const isCorsace = hasRole("corsace", "corsace")
 
-export { isLoggedIn, isStaff, isCorsace, hasRole }
+export { isLoggedIn, isLoggedInDiscord, isLoggedInOsu, isStaff, isCorsace, hasRole }
