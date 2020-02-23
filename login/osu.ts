@@ -1,8 +1,8 @@
-import Router from 'koa-router';
+import Router from "koa-router";
 import passport from "koa-passport";
-import Axios from 'axios';
-import { Eligibility } from '../../CorsaceModels/MCA_AYIM/eligibility';
-import { Config } from '../../config';
+import Axios from "axios";
+import { Eligibility } from "../../CorsaceModels/MCA_AYIM/eligibility";
+import { Config } from "../../config";
 
 const osuRouter = new Router();
 const config = new Config();
@@ -10,18 +10,18 @@ const mode = [
     "standard",
     "taiko",
     "fruits",
-    "mania"
-]
+    "mania",
+];
 
-osuRouter.get("/", passport.authenticate("oauth2", { scope: ["identify"] }))
+osuRouter.get("/", passport.authenticate("oauth2", { scope: ["identify"] }));
 osuRouter.get("/callback", async (ctx, next) => {
     // @ts-ignore
     return await passport.authenticate("oauth2", { scope: ["identify"], failureRedirect: "/" }, async (err, user) => {
         if (user) {
             if (ctx.state.user) {
-                const userOsu = user.osu 
-                ctx.state.user.osu = userOsu
-                user = ctx.state.user
+                const userOsu = user.osu; 
+                ctx.state.user.osu = userOsu;
+                user = ctx.state.user;
             }
             await user.save();
             // @ts-ignore
@@ -31,35 +31,35 @@ osuRouter.get("/callback", async (ctx, next) => {
             ctx.status = 400;
             ctx.body = { error: err };
         }
-    })(ctx)
+    })(ctx);
 }, async ctx => {
     // MCA data
-    const beatmaps = (await Axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${ctx.state.user.osu.userID}`)).data
+    const beatmaps = (await Axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${ctx.state.user.osu.userID}`)).data;
     if (beatmaps.length != 0) {
         for (const beatmap of beatmaps) {
             if (!beatmap.version.includes("'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
-                const date = new Date(beatmap.approved_date)
+                const date = new Date(beatmap.approved_date);
                 const year = date.getUTCFullYear();
                 let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { ID: ctx.state.user.ID } }});
                 if (!eligibility) {
                     eligibility = new Eligibility();
-                    eligibility.year = year
-                    eligibility.user = ctx.state.user
+                    eligibility.year = year;
+                    eligibility.user = ctx.state.user;
                 }
                 
                 if (!eligibility[mode[beatmap.mode]]) {
-                    eligibility[mode[beatmap.mode]] = true
-                    await eligibility.save()
-                    const i = ctx.state.user.mca.findIndex(e => e.year === year)
+                    eligibility[mode[beatmap.mode]] = true;
+                    await eligibility.save();
+                    const i = ctx.state.user.mca.findIndex(e => e.year === year);
                     if (i === -1)
-                        ctx.state.user.mca.push(eligibility)
+                        ctx.state.user.mca.push(eligibility);
                     else
-                        ctx.state.user.mca[i] = eligibility
+                        ctx.state.user.mca[i] = eligibility;
                 }
             }
         }
     }
-    ctx.redirect("/")
-})
+    ctx.redirect("/");
+});
 
 export default osuRouter;

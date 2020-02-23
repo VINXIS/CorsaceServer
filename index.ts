@@ -1,15 +1,15 @@
 import "reflect-metadata";
 import { createConnection } from "typeorm";
-import Koa from 'koa';
-import BodyParser from 'koa-bodyparser';
-import Mount from 'koa-mount';
+import Koa from "koa";
+import BodyParser from "koa-bodyparser";
+import Mount from "koa-mount";
 import passport from "koa-passport";
-import Session from 'koa-session';
-import { Config, SubConfig } from "../config"
+import Session from "koa-session";
+import { Config, SubConfig } from "../config";
 import OAuth2Strategy from "passport-oauth2";
 import { Strategy as DiscordStrategy } from "passport-discord";
-import { User } from '../CorsaceModels/user';
-import discordRouter from "./login/discord"
+import { User } from "../CorsaceModels/user";
+import discordRouter from "./login/discord";
 import { discordPassport, osuPassport } from "./passportFunctions";
 import osuRouter from "./login/osu";
 
@@ -19,7 +19,7 @@ export class App {
     private config = new Config;
 
     constructor(type: string) {
-        const subconfig = this.config[type] as SubConfig
+        const subconfig = this.config[type] as SubConfig;
         
         // Connect to DB
         createConnection({
@@ -32,7 +32,7 @@ export class App {
             "synchronize": true,
             "logging": false,
             "entities": [
-               "../CorsaceModels/**/*.ts"
+                "../CorsaceModels/**/*.ts",
             ],
         }).then((connection) => {
             console.log("Connected to the " + connection.options.database + " database!");
@@ -46,8 +46,8 @@ export class App {
         }, discordPassport));
 
         passport.use(new OAuth2Strategy({
-            authorizationURL: 'https://osu.ppy.sh/oauth/authorize',
-            tokenURL: 'https://osu.ppy.sh/oauth/token',
+            authorizationURL: "https://osu.ppy.sh/oauth/authorize",
+            tokenURL: "https://osu.ppy.sh/oauth/token",
             clientID: subconfig.osuID.toString(),
             clientSecret: subconfig.osuSecret,
             callbackURL: subconfig.publicURL + "/api/login/osu/callback",
@@ -63,7 +63,7 @@ export class App {
                     user = await User.findOne(id);
                 
                 if (typeof user === "undefined") {
-                    user = null
+                    user = null;
                 }
 
                 done(null, user);
@@ -73,8 +73,8 @@ export class App {
             }        
         });
 
-        this.koa.keys = subconfig.keys
-        this.koa.use(Session(this.koa))
+        this.koa.keys = subconfig.keys;
+        this.koa.use(Session(this.koa));
         this.koa.use(BodyParser());
         this.koa.use(passport.initialize());
         this.koa.use(passport.session());

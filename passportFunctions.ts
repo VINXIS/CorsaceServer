@@ -19,8 +19,8 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
             user.discord.dateAdded = user.registered = new Date;
         }
 
-        user.discord.userID = profile.id
-        user.discord.username = profile.username
+        user.discord.userID = profile.id;
+        user.discord.username = profile.username;
         user.discord.accessToken = accessToken;
         user.discord.refreshToken = refreshToken;
         user.discord.avatar = profile.avatar;
@@ -29,7 +29,7 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
         done(null, user);
     } catch(error) {
         console.log("Error while authenticating user via Discord", error);
-        done(error, null);
+        done(error, undefined);
     }
 }
 
@@ -37,9 +37,9 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
     try {
         const res = await Axios.get("https://osu.ppy.sh/api/v2/me", {
             headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        })
+                Authorization: `Bearer ${accessToken}`,
+            },
+        });
         const userProfile = res.data;
         let user = await User.findOne({ 
             osu: {
@@ -63,8 +63,8 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
 
         done(null, user);
     } catch (error) {
-        done(error, null);
+        done(error, undefined);
     }
 }
 
-export { discordPassport, osuPassport }
+export { discordPassport, osuPassport };
