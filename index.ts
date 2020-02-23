@@ -57,14 +57,9 @@ export class App {
             done(null, user.ID);
         });
         passport.deserializeUser(async (id, done) => {
+            if (!id) return done(null, null);
             try {
-                let user: User;
-                if(id)
-                    user = await User.findOne(id);
-                
-                if (typeof user === "undefined") {
-                    user = null;
-                }
+                const user = await User.findOne(id as number);
 
                 done(null, user);
             } catch(err) {

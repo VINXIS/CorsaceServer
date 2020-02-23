@@ -50,7 +50,7 @@ osuRouter.get("/callback", async (ctx, next) => {
                 if (!eligibility[mode[beatmap.mode]]) {
                     eligibility[mode[beatmap.mode]] = true;
                     await eligibility.save();
-                    const i = ctx.state.user.mca.findIndex(e => e.year === year);
+                    const i = ctx.state.user.mca.findIndex((e: Eligibility) => e.year === year);
                     if (i === -1)
                         ctx.state.user.mca.push(eligibility);
                     else
