@@ -92,9 +92,8 @@ async function convert(map: any): Promise<Beatmap> {
         beatmap.packs = map.packs;
     if (map.diff_speed)
         beatmap.speedSR = parseFloat(map.diff_speed);
-    if (map.storyboard == 1) {
+    if (map.storyboard == 1)
         beatmap.storyboard = true;
-    }
     if (map.video == 1)
         beatmap.video = true;
 
