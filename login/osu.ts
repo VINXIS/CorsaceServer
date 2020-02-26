@@ -3,6 +3,7 @@ import passport from "koa-passport";
 import Axios from "axios";
 import { Eligibility } from "../../CorsaceModels/MCA_AYIM/eligibility";
 import { Config } from "../../config";
+import { UsernameChange } from "../../CorsaceModels/user";
 
 const osuRouter = new Router();
 const config = new Config();
@@ -19,10 +20,12 @@ osuRouter.get("/callback", async (ctx, next) => {
     return await passport.authenticate("oauth2", { scope: ["identify"], failureRedirect: "/" }, async (err, user) => {
         if (user) {
             if (ctx.state.user) {
-                const userOsu = user.osu; 
-                ctx.state.user.osu = userOsu;
+                await ctx.state.user.remove();
+                ctx.state.user.ID = user.ID;
+                ctx.state.user.osu = user.osu;
                 user = ctx.state.user;
             }
+
             await user.save();
             // @ts-ignore
             ctx.login(user);
@@ -32,6 +35,24 @@ osuRouter.get("/callback", async (ctx, next) => {
             ctx.body = { error: err };
         }
     })(ctx);
+}, async (ctx, next) => {
+    // Username changes
+    const res = await Axios.get("https://osu.ppy.sh/api/v2/me", {
+        headers: {
+            Authorization: `Bearer ${ctx.state.user.osu.accessToken}`,
+        },
+    });
+    const usernames: string[] = res.data.previous_usernames;
+    for (const name of usernames) {
+        let nameChange = await UsernameChange.findOne({ name, user: ctx.state.user });
+        if (!nameChange) {
+            nameChange = new UsernameChange;
+            nameChange.name = name;
+            nameChange.user = ctx.state.user;
+            await nameChange.save();
+        }
+    }
+    await next();
 }, async ctx => {
     // MCA data
     const beatmaps = (await Axios.get(`https://osu.ppy.sh/api/get_beatmaps?k=${config.osuV1}&u=${ctx.state.user.osu.userID}`)).data;

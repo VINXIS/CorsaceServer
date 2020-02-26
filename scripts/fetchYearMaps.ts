@@ -3,6 +3,7 @@ import { Config } from "../../config";
 import axios from "axios";
 import { Beatmap } from "../../CorsaceModels/MCA_AYIM/beatmap";
 import { ModeDivisionType, ModeDivision } from "../../CorsaceModels/MCA_AYIM/modeDivision";
+import { User, UsernameChange, OAuth } from "../../CorsaceModels/user";
 
 const config = new Config();
 const args = process.argv.slice(2); // Year to get the maps for
@@ -133,11 +134,33 @@ async function run(): Promise<void> {
     
                 // Check if ranked / approved
                 if (map.approved == 1 || map.approved == 2) { 
-                    // see if map exists already, if it doesnt then 
+                    // see if map exists already, if it doesnt then add it
                     let dbMap = await Beatmap.findOne(map.beatmap_id);
                     if (!dbMap) {
                         dbMap = await convert(map);
                         await dbMap.save();
+                    }
+                    // see if user exists already, if they dont then add them
+                    let dbUser = await User.findOne({ osu: { userID: dbMap.creatorID.toString() } });
+                    if (!dbUser) {
+                        dbUser = new User;
+                        dbUser.osu = new OAuth;
+                        dbUser.osu.userID = dbMap.creatorID.toString();
+                        dbUser.osu.username = dbMap.creator;
+                        await dbUser.save();
+                    } else if (dbUser.osu.username !== dbMap.creator && !dbUser.otherNames.some(v => dbMap && v.name === dbMap.creator)) { // Check for username change
+                        let nameChange = await UsernameChange.findOne({ name: dbMap.creator, user: dbUser });
+                        if (nameChange)
+                            await nameChange.remove();
+
+                        const oldName = dbUser.osu.username;
+                        dbUser.osu.username = dbMap.creator;
+                        await dbUser.save();
+
+                        nameChange = new UsernameChange;
+                        nameChange.user = dbUser;
+                        nameChange.name = oldName;
+                        await nameChange.save();
                     }
                     date = map.approved_date;
                 }

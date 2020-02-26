@@ -9,8 +9,7 @@ discordRouter.get("/callback", async (ctx) => {
     return await passport.authenticate("discord", { scope: ["identify", "guilds.join"], failureRedirect: "/" }, async (err, user) => {
         if (user) {
             if (ctx.state.user) {
-                const userDiscord = user.discord; 
-                ctx.state.user.discord = userDiscord;
+                ctx.state.user.discord = user.discord;
                 user = ctx.state.user;
             }
             await user.save();

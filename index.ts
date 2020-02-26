@@ -60,8 +60,10 @@ export class App {
             if (!id) return done(null, null);
             try {
                 const user = await User.findOne(id as number);
-
-                done(null, user);
+                if (user)
+                    done(null, user);
+                else
+                    done(null, null);
             } catch(err) {
                 console.log("Error while deserializing user", err);
                 done(err, null);
