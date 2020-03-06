@@ -17,7 +17,7 @@ async function isLoggedIn(ctx: ParameterizedContext<any, Router.IRouterParamCont
 }
 
 async function isLoggedInDiscord(ctx: ParameterizedContext<any, Router.IRouterParamContext<any, {}>>, next: Next): Promise<void> {
-    if (!ctx.state.user.discord.accessToken) {
+    if (!ctx.state.user?.discord?.accessToken) {
         ctx.body = { error: "User is not logged in via discord!" };
         return; 
     }
@@ -26,7 +26,7 @@ async function isLoggedInDiscord(ctx: ParameterizedContext<any, Router.IRouterPa
 }
 
 async function isLoggedInOsu(ctx: ParameterizedContext<any, Router.IRouterParamContext<any, {}>>, next: Next): Promise<void> {
-    if (!ctx.state.user.osu.accessToken) {
+    if (!ctx.state.user?.osu?.accessToken) {
         ctx.body = { error: "User is not logged in via osu!" };
         return; 
     }
