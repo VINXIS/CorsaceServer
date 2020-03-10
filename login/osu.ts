@@ -3,7 +3,7 @@ import passport from "koa-passport";
 import Axios from "axios";
 import { Eligibility } from "../../CorsaceModels/MCA_AYIM/eligibility";
 import { Config } from "../../config";
-import { UsernameChange } from "../../CorsaceModels/user";
+import { UsernameChange } from "../../CorsaceModels/usernameChange";
 
 const osuRouter = new Router();
 const config = new Config();
