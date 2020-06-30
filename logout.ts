@@ -1,8 +1,9 @@
 import Router from "koa-router";
+import { isLoggedIn } from "./middleware";
 
 const logoutRouter = new Router();
 
-logoutRouter.get("/", async (ctx) => {
+logoutRouter.get("/", isLoggedIn, async (ctx) => {
     // @ts-ignore
     if (ctx.isAuthenticated()) {
         // @ts-ignore
