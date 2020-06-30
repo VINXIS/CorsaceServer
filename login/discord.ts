@@ -15,7 +15,7 @@ discordRouter.get("/callback", async (ctx) => {
             await user.save();
             // @ts-ignore
             ctx.login(user);
-            ctx.redirect("/");
+            ctx.redirect("back");
         } else {
             ctx.status = 400;
             ctx.body = { error: err };

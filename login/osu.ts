@@ -80,7 +80,7 @@ osuRouter.get("/callback", async (ctx, next) => {
             }
         }
     }
-    ctx.redirect("/");
+    ctx.redirect("back");
 });
 
 export default osuRouter;

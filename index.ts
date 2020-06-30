@@ -12,6 +12,7 @@ import { User } from "../CorsaceModels/user";
 import discordRouter from "./login/discord";
 import { discordPassport, osuPassport } from "./passportFunctions";
 import osuRouter from "./login/osu";
+import logoutRouter from "./logout";
 
 export class App {
 
@@ -77,5 +78,6 @@ export class App {
         this.koa.use(passport.session());
         this.koa.use(Mount("/login/discord", discordRouter.routes()));
         this.koa.use(Mount("/login/osu", osuRouter.routes()));
+        this.koa.use(Mount("/logout", logoutRouter.routes()));
     }
 }
