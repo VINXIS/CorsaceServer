@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import passport from "koa-passport";
 import Axios from "axios";
-import { Eligibility } from "../../CorsaceModels/MCA_AYIM/eligibility";
+import { MCAEligibility } from "../../CorsaceModels/MCA_AYIM/mcaEligibility";
 import { Config } from "../../config";
 import { UsernameChange } from "../../CorsaceModels/usernameChange";
 
@@ -61,9 +61,9 @@ osuRouter.get("/callback", async (ctx, next) => {
             if (!beatmap.version.includes("'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
                 const date = new Date(beatmap.approved_date);
                 const year = date.getUTCFullYear();
-                let eligibility = await Eligibility.findOne({ relations: ["user"], where: { year: year, user: { ID: ctx.state.user.ID } }});
+                let eligibility = await MCAEligibility.findOne({ relations: ["user"], where: { year: year, user: { ID: ctx.state.user.ID } }});
                 if (!eligibility) {
-                    eligibility = new Eligibility();
+                    eligibility = new MCAEligibility();
                     eligibility.year = year;
                     eligibility.user = ctx.state.user;
                 }
@@ -71,7 +71,7 @@ osuRouter.get("/callback", async (ctx, next) => {
                 if (!eligibility[mode[beatmap.mode]]) {
                     eligibility[mode[beatmap.mode]] = true;
                     await eligibility.save();
-                    const i = ctx.state.user.mca.findIndex((e: Eligibility) => e.year === year);
+                    const i = ctx.state.user.mca.findIndex((e: MCAEligibility) => e.year === year);
                     if (i === -1)
                         ctx.state.user.mca.push(eligibility);
                     else
