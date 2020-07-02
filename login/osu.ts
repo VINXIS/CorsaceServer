@@ -71,11 +71,11 @@ osuRouter.get("/callback", async (ctx, next) => {
                 if (!eligibility[mode[beatmap.mode]]) {
                     eligibility[mode[beatmap.mode]] = true;
                     await eligibility.save();
-                    const i = ctx.state.user.mca.findIndex((e: MCAEligibility) => e.year === year);
+                    const i = ctx.state.user.mcaEligibility.findIndex((e: MCAEligibility) => e.year === year);
                     if (i === -1)
-                        ctx.state.user.mca.push(eligibility);
+                        ctx.state.user.mcaEligibility.push(eligibility);
                     else
-                        ctx.state.user.mca[i] = eligibility;
+                        ctx.state.user.mcaEligibility[i] = eligibility;
                 }
             }
         }

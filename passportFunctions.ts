@@ -59,7 +59,7 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
         user.osu.accessToken = accessToken;
         user.osu.refreshToken = refreshToken;
         user.osu.lastVerified = user.lastLogin = new Date();
-        user.mca = [];
+        user.mcaEligibility = [];
 
         done(null, user);
     } catch (error) {
