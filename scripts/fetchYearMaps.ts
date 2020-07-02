@@ -125,21 +125,28 @@ async function createMap(map: any): Promise<Beatmap> {
 
 async function fetchYearMaps(): Promise<void> {
     // Connect
-    createConnection({
-        "type": "mariadb",
-        "host": "localhost",
-        "username": config.database.username,
-        "password": config.database.password,
-        "database": config.database.name,
-        "timezone": "Z",
-        "synchronize": true,
-        "logging": false,
-        "entities": [
-            __dirname + "/../../CorsaceModels/**/*{.ts,.js}",
-        ],
-    }).then((connection) => {
+    const start = new Date;
+    console.log("Connecting to the DB...");
+    try {
+        const connection = await createConnection({
+            "type": "mariadb",
+            "host": "localhost",
+            "username": config.database.username,
+            "password": config.database.password,
+            "database": config.database.name,
+            "timezone": "Z",
+            "synchronize": true,
+            "logging": false,
+            "entities": [
+                __dirname + "/../../CorsaceModels/**/*{.ts,.js}",
+            ],
+        });
+
         console.log("Connected to the " + connection.options.database + " database!");
-    }).catch(err => console.error(err));
+    } catch (err) {
+        console.error(err);
+        process.exit(1);
+    }
 
     // Start a loop in obtaining the beatmaps
     let date = year + "-01-01";
@@ -151,6 +158,9 @@ async function fetchYearMaps(): Promise<void> {
                 // Check if this map's date year is the same as the year that was given
                 if (new Date(map.approved_date).getFullYear() !== year) {
                     console.log("Final " + year + " map was found.");
+                    const finish = new Date;
+                    const duration = new Date(finish.valueOf() - start.valueOf());
+                    console.log("Operation lasted for " + duration.getUTCHours() + " hours, " + duration.getUTCMinutes() + " minutes, and " + duration.getUTCSeconds() + " seconds.");
                     process.exit(0);
                 }
     
