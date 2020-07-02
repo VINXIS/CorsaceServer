@@ -1,13 +1,21 @@
 import { createConnection } from "typeorm";
 import { Config } from "../../config";
 import axios from "axios";
-import { Beatmap } from "../../CorsaceModels/MCA_AYIM/beatmap";
 import { ModeDivisionType, ModeDivision } from "../../CorsaceModels/MCA_AYIM/modeDivision";
-import { User, UsernameChange, OAuth } from "../../CorsaceModels/user";
+import { Beatmapset } from "../../CorsaceModels/MCA_AYIM/beatmapset";
+import { Beatmap } from "../../CorsaceModels/MCA_AYIM/beatmap";
+import { User, OAuth } from "../../CorsaceModels/user";
+import { UsernameChange } from "../../CorsaceModels/usernameChange";
 
 const config = new Config();
 const args = process.argv.slice(2); // Year to get the maps for
 const year = parseInt(args[0]);
+if (Number.isNaN(year))
+{
+    console.error("Please provide a valid year!");
+    process.exit(1);
+}
+
 const genres = [
     "any",
     "unspecified",
@@ -20,11 +28,15 @@ const genres = [
     "---",
     "hip hop",
     "electronic",
+    "metal",
+    "classical",
+    "folk",
+    "jazz",
 ];
 
 const langs = [
     "any",
-    "other",
+    "unspecified",
     "english",
     "japanese",
     "chinese",
@@ -35,21 +47,37 @@ const langs = [
     "swedish",
     "spanish",
     "italian",
+    "russian",
+    "polish",
+    "other",
 ];
 
-// convert assigns beatmap values from the osu!API JSON object to the local model
-async function convert(map: any): Promise<Beatmap> {
-    const beatmap = new Beatmap;
+function createSet(map: any): Beatmapset {
     
-    beatmap.ID = parseInt(map.beatmap_id);
-    beatmap.setID = parseInt(map.beatmapset_id);
-    
-    beatmap.artist = map.artist;
-    beatmap.title = map.title;
-    beatmap.difficulty = map.version;
-    beatmap.creator = map.creator;
-    beatmap.creatorID = parseInt(map.creator_id);
+    const dbSet = new Beatmapset;
+    dbSet.ID = parseInt(map.beatmapset_id);
 
+    dbSet.approvedDate = new Date(map.approved_date);
+    dbSet.submitDate = new Date(map.submit_date);
+
+    dbSet.BPM = parseFloat(map.bpm);
+
+    dbSet.artist = map.artist;
+    dbSet.title = map.title;
+
+    dbSet.genre = genres[map.genre_id];
+    dbSet.language = langs[map.language_id];
+
+    dbSet.favourites = parseInt(map.favourite_count);
+
+    return dbSet;
+}
+
+async function createMap(map: any): Promise<Beatmap> {
+    const dbMap = new Beatmap;
+    dbMap.ID = parseInt(map.beatmap_id);
+    
+    // see if mode exists already, if it doesn't then add it
     let mode = await ModeDivision.findOne(parseInt(map.mode)+1);
     if (!mode) {
         mode = new ModeDivision;
@@ -57,51 +85,45 @@ async function convert(map: any): Promise<Beatmap> {
         mode.name = ModeDivisionType[mode.ID];
         await mode.save();
     }
-    beatmap.mode = mode;
+    dbMap.mode = mode;
 
-    beatmap.genre = genres[map.genre_id];
-    beatmap.language = langs[map.language_id];
+    dbMap.difficulty = map.version;
 
-    beatmap.BPM = parseFloat(map.bpm);
-    beatmap.circleSize = parseFloat(map.diff_size);
-    beatmap.approachRate = parseFloat(map.diff_approach);
-    beatmap.overallDifficulty = parseFloat(map.diff_overall);
-    beatmap.hpDrain = parseFloat(map.diff_drain);
+    dbMap.circleSize = parseFloat(map.diff_size);
+    dbMap.approachRate = parseFloat(map.diff_approach);
+    dbMap.overallDifficulty = parseFloat(map.diff_overall);
+    dbMap.hpDrain = parseFloat(map.diff_drain);
 
-    beatmap.submitDate = new Date(map.submit_date);
-    beatmap.approvedDate = new Date(map.approved_date);
+    dbMap.circles = parseInt(map.count_normal);
+    dbMap.sliders = parseInt(map.count_slider);
+    dbMap.spinners = parseInt(map.count_spinner);
 
-    beatmap.circles = parseInt(map.count_normal);
-    beatmap.sliders = parseInt(map.count_slider);
-    beatmap.spinners = parseInt(map.count_spinner);
+    dbMap.rating = parseFloat(map.rating);
+    dbMap.passCount = parseInt(map.passcount);
+    dbMap.playCount = parseInt(map.playcount);
 
-    beatmap.favourites = parseInt(map.favourite_count);
-    beatmap.rating = parseFloat(map.rating);
-    beatmap.passCount = parseInt(map.passcount);
-    beatmap.playCount = parseInt(map.playcount);
+    dbMap.hitLength = parseInt(map.hit_length);
+    dbMap.totalLength = parseInt(map.total_length);
 
-    beatmap.hitLength = parseInt(map.hit_length);
-    beatmap.totalLength = parseInt(map.total_length);
-
-    beatmap.totalSR = parseFloat(map.difficultyrating);
+    dbMap.totalSR = parseFloat(map.difficultyrating);
 
     if (map.diff_aim)
-        beatmap.aimSR = parseFloat(map.diff_aim);
-    if (map.max_combo)
-        beatmap.maxCombo = parseInt(map.max_combo);
-    if (map.packs)
-        beatmap.packs = map.packs;
+        dbMap.aimSR = parseFloat(map.diff_aim);
     if (map.diff_speed)
-        beatmap.speedSR = parseFloat(map.diff_speed);
+        dbMap.speedSR = parseFloat(map.diff_speed);
+    if (map.max_combo)
+        dbMap.maxCombo = parseInt(map.max_combo);
+    if (map.packs)
+        dbMap.packs = map.packs;
     if (map.storyboard == 1)
-        beatmap.storyboard = true;
+        dbMap.storyboard = true;
     if (map.video == 1)
-        beatmap.video = true;
-
-    return beatmap;
+        dbMap.video = true;
+    
+    return dbMap;
 }
 
-async function run(): Promise<void> {
+async function fetchYearMaps(): Promise<void> {
     // Connect
     createConnection({
         "type": "mariadb",
@@ -134,34 +156,55 @@ async function run(): Promise<void> {
     
                 // Check if ranked / approved
                 if (map.approved == 1 || map.approved == 2) { 
-                    // see if map exists already, if it doesnt then add it
-                    let dbMap = await Beatmap.findOne(map.beatmap_id);
-                    if (!dbMap) {
-                        dbMap = await convert(map);
+
+                    // see if set exists already, if it doesn't then add it
+                    let dbSet = await Beatmapset.findOne(map.beatmapset_id);
+                    if (!dbSet) {
+                        dbSet = createSet(map);
+                        await dbSet.save();
+                    }
+
+                    // see if beatmap exists, if it doesn't then add it
+                    if (!dbSet.beatmaps?.some(b => b.ID === parseInt(map.beatmap_id))) {
+                        const dbMap = await createMap(map);
+                        dbMap.beatmapset = dbSet;
                         await dbMap.save();
                     }
-                    // see if user exists already, if they dont then add them
-                    let dbUser = await User.findOne({ osu: { userID: dbMap.creatorID.toString() } });
+
+                    // see if user exists, if they don't then add them
+                    let dbUser = await User.findOne({ 
+                        osu: {
+                            userID: map.creator_id,
+                        },
+                    }, {
+                        relations: ["beatmapsets"],
+                    });
                     if (!dbUser) {
                         dbUser = new User;
                         dbUser.osu = new OAuth;
-                        dbUser.osu.userID = dbMap.creatorID.toString();
-                        dbUser.osu.username = dbMap.creator;
+                        dbUser.osu.userID = map.creator_id;
+                        dbUser.osu.username = map.creator;
+                        dbUser.beatmapsets = [dbSet];
                         await dbUser.save();
-                    } else if (dbUser.osu.username !== dbMap.creator && !dbUser.otherNames.some(v => dbMap && v.name === dbMap.creator)) { // Check for username change
-                        let nameChange = await UsernameChange.findOne({ name: dbMap.creator, user: dbUser });
-                        if (nameChange)
-                            await nameChange.remove();
+                    } else {
+                        dbUser.beatmapsets.push(dbSet);
+                        if (dbUser.osu.username !== map.creator && !dbUser.otherNames.some(v => v.name === map.creator)) { // Check for username change
+                            let nameChange = await UsernameChange.findOne({ name: map.creator, user: dbUser });
+                            if (nameChange)
+                                await nameChange.remove();
 
-                        const oldName = dbUser.osu.username;
-                        dbUser.osu.username = dbMap.creator;
-                        await dbUser.save();
+                            const oldName = dbUser.osu.username;
+                            dbUser.osu.username = map.creator;
+                            await dbUser.save();
 
-                        nameChange = new UsernameChange;
-                        nameChange.user = dbUser;
-                        nameChange.name = oldName;
-                        await nameChange.save();
+                            nameChange = new UsernameChange;
+                            nameChange.user = dbUser;
+                            nameChange.name = oldName;
+                            await nameChange.save();
+                        } else
+                            await dbUser.save();
                     }
+
                     date = map.approved_date;
                 }
                 mapNum++;
@@ -173,4 +216,4 @@ async function run(): Promise<void> {
     }
 }
 
-run();
+fetchYearMaps();
