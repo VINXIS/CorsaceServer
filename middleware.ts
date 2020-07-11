@@ -6,7 +6,6 @@ import Router from "koa-router";
 // General middlewares
 const config = new Config();
 
-
 async function isLoggedIn(ctx: ParameterizedContext<any, Router.IRouterParamContext<any, {}>>, next: Next): Promise<void> {
     if (!ctx.state.user) {
         ctx.body = { error: "No user found!" };

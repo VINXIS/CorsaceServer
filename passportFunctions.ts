@@ -2,6 +2,7 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import OAuth2Strategy from "passport-oauth2";
 import { User, OAuth } from "../CorsaceModels/user";
 import Axios from "axios";
+import { discordClient } from "./discord";
 
 
 async function discordPassport(accessToken: string, refreshToken: string, profile: DiscordStrategy.Profile, done: OAuth2Strategy.VerifyCallback): Promise<void> {
@@ -23,7 +24,7 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
         user.discord.username = profile.username;
         user.discord.accessToken = accessToken;
         user.discord.refreshToken = refreshToken;
-        user.discord.avatar = profile.avatar;
+        user.discord.avatar = (await discordClient.fetchUser(profile.id)).avatarURL;
         user.lastLogin = user.discord.lastVerified = new Date();
 
         done(null, user);
