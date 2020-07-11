@@ -14,10 +14,10 @@ const mode = [
     "mania",
 ];
 
-osuRouter.get("/", passport.authenticate("oauth2", { scope: ["identify"] }));
+osuRouter.get("/", passport.authenticate("oauth2", { scope: ["identify", "public"] }));
 osuRouter.get("/callback", async (ctx, next) => {
     // @ts-ignore
-    return await passport.authenticate("oauth2", { scope: ["identify"], failureRedirect: "/" }, async (err, user) => {
+    return await passport.authenticate("oauth2", { scope: ["identify", "public"], failureRedirect: "/" }, async (err, user) => {
         if (user) {
             if (ctx.state.user) {
                 await ctx.state.user.remove();
