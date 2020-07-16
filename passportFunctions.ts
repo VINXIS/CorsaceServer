@@ -25,7 +25,7 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
         user.discord.accessToken = accessToken;
         user.discord.refreshToken = refreshToken;
         user.discord.avatar = (await discordClient.fetchUser(profile.id)).avatarURL;
-        user.lastLogin = user.discord.lastVerified = new Date();
+        user.lastLogin = user.discord.lastVerified = new Date;
 
         done(null, user);
     } catch(error) {
@@ -59,7 +59,7 @@ async function osuPassport(accessToken: string, refreshToken: string, profile: a
         user.osu.avatar = "https://a.ppy.sh/" + userProfile.id;
         user.osu.accessToken = accessToken;
         user.osu.refreshToken = refreshToken;
-        user.osu.lastVerified = user.lastLogin = new Date();
+        user.osu.lastVerified = user.lastLogin = new Date;
         user.mcaEligibility = [];
 
         done(null, user);
