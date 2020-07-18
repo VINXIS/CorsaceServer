@@ -148,6 +148,16 @@ async function fetchYearMaps(): Promise<void> {
         process.exit(1);
     }
 
+    // In case storyboard mode doesn't exist
+    let mode = await ModeDivision.findOne(5);
+    if (!mode)
+    {
+        mode = new ModeDivision;
+        mode.ID = 5;
+        mode.name = ModeDivisionType[5];
+        await mode.save();
+    }
+
     // Start a loop in obtaining the beatmaps
     let date = year + "-01-01";
     let mapNum = 0;
