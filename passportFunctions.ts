@@ -2,7 +2,7 @@ import { Strategy as DiscordStrategy } from "passport-discord";
 import OAuth2Strategy from "passport-oauth2";
 import { User, OAuth } from "../CorsaceModels/user";
 import Axios from "axios";
-import discordClient from "./discord";
+import { discordClient } from "./discord";
 
 
 async function discordPassport(accessToken: string, refreshToken: string, profile: DiscordStrategy.Profile, done: OAuth2Strategy.VerifyCallback): Promise<void> {
