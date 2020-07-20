@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import passport from "koa-passport";
-import { discordGuild, discordClient } from "../discord";
+import discordClient from "../discord";
 import { Config } from "../../config";
 
 const discordRouter = new Router();
@@ -23,9 +23,9 @@ discordRouter.get("/callback", async (ctx) => {
             await user.save();
 
             // Add user to server if they aren't there yet
-            let discordUser = discordGuild.members.get(user.discord.userID);
+            let discordUser = discordClient.getGuild().members.get(user.discord.userID);
             if (!discordUser) {
-                discordUser = await discordGuild.addMember(await discordClient.fetchUser(user.discord.userID), {
+                discordUser = await discordClient.getGuild().addMember(await discordClient.fetchUser(user.discord.userID), {
                     accessToken: user.discord.accessToken,
                     nick: user.osu.username,
                     roles: [config.discord.roles.corsace.verified],

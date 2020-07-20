@@ -3,12 +3,20 @@ import { Config } from "../config";
 
 const config = new Config();
 
-const discordClient = new Discord.Client;
-let discordGuild: Discord.Guild;
+class CorsaceDiscordClient extends Discord.Client {
+    constructor() {
+        super();
+    }
+
+    public getGuild(): Discord.Guild {
+        return this.guilds.get(config.discord.guild) as Discord.Guild;
+    }
+}
+
+const discordClient = new CorsaceDiscordClient;
 
 discordClient.login(config.discord.token).then(() => {
     console.log("Logged into discord!");
-    discordGuild = discordClient.guilds.get(config.discord.guild) as Discord.Guild;
 }).catch(err => {if (err) throw err;});
 
-export { discordClient, discordGuild };
+export default discordClient;

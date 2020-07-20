@@ -1,5 +1,5 @@
 import { Config } from "../config";
-import { discordGuild } from "./discord";
+import discordClient from "./discord";
 import { ParameterizedContext, Next } from "koa";
 import Router from "koa-router";
 
@@ -34,7 +34,7 @@ async function isLoggedInOsu(ctx: ParameterizedContext<any, Router.IRouterParamC
 }
 
 async function isStaff(ctx: ParameterizedContext<any, Router.IRouterParamContext<any, {}>>, next: Next): Promise<void> {
-    const member = await discordGuild.fetchMember(ctx.state.user.discord.userID);
+    const member = await discordClient.getGuild().fetchMember(ctx.state.user.discord.userID);
     if (member) {
         const roles = [
             config.discord.roles.corsace.staff,
@@ -55,7 +55,7 @@ async function isStaff(ctx: ParameterizedContext<any, Router.IRouterParamContext
 
 function hasRole(section: string, role: string) {
     return async (ctx: ParameterizedContext<any, Router.IRouterParamContext<any, {}>>, next: Next): Promise<void> => {
-        const member = await discordGuild.fetchMember(ctx.state.user.discord.userID);
+        const member = await discordClient.getGuild().fetchMember(ctx.state.user.discord.userID);
         if (member && (member.roles.has(config.discord.roles[section][role]) || member.roles.has(config.discord.roles.corsace.corsace))) {
             await next();    
             return;
