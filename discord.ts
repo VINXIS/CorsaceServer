@@ -9,6 +9,10 @@ discordClient.login(config.discord.token).then(() => {
     console.log("Logged into discord!");
 }).catch(err => {if (err) throw err;});
 
+discordClient.on("error", err => {
+    console.log(err);
+});
+
 const discordGuild = (): Discord.Guild => discordClient.guilds.get(config.discord.guild) as Discord.Guild;
 
 export { discordClient, discordGuild };
