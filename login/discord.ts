@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import passport from "koa-passport";
-import { discordClient, discordGuild } from "../discord";
+import { discordGuild } from "../discord";
 import { Config } from "../../config";
 
 const discordRouter = new Router();
@@ -22,16 +22,20 @@ discordRouter.get("/callback", async (ctx) => {
 
             await user.save();
 
-            // Add user to server if they aren't there yet
-            let discordUser = discordGuild().members.get(user.discord.userID);
-            if (!discordUser) {
-                discordUser = await discordGuild().addMember(await discordClient.fetchUser(user.discord.userID), {
-                    accessToken: user.discord.accessToken,
-                    nick: user.osu.username,
-                    roles: [config.discord.roles.corsace.verified],
-                });
-            } else {
-                await discordUser.setNickname(user.osu.username);
+            try {
+                // Add user to server if they aren't there yet
+                let discordUser = await (await discordGuild()).members.fetch(user.discord.userID);
+                if (!discordUser) {
+                    discordUser = await (await discordGuild()).addMember(user.discord.userID, {
+                        accessToken: user.discord.accessToken,
+                        nick: user.osu.username,
+                        roles: [config.discord.roles.corsace.verified],
+                    });
+                } else {
+                    await discordUser.setNickname(user.osu.username);
+                }
+            } catch (err) {
+                console.log("An error occurred in adding a user to the server / changing their nickname: " + err);
             }
 
             // @ts-ignore

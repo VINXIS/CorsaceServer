@@ -13,6 +13,6 @@ discordClient.on("error", err => {
     console.log(err);
 });
 
-const discordGuild = (): Discord.Guild => discordClient.guilds.get(config.discord.guild) as Discord.Guild;
+const discordGuild = (): Promise<Discord.Guild> => discordClient.guilds.fetch(config.discord.guild);
 
 export { discordClient, discordGuild };

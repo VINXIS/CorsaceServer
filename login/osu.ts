@@ -61,7 +61,7 @@ osuRouter.get("/callback", async (ctx, next) => {
             if (!beatmap.version.includes("'") && (beatmap.approved == 2 || beatmap.approved == 1)) {
                 const date = new Date(beatmap.approved_date);
                 const year = date.getUTCFullYear();
-                let eligibility = await MCAEligibility.findOne({ relations: ["user"], where: { year: year, user: { ID: ctx.state.user.ID } }});
+                let eligibility = await MCAEligibility.findOne({ relations: ["user"], where: { year: year, user: ctx.state.user }});
                 if (!eligibility) {
                     eligibility = new MCAEligibility();
                     eligibility.year = year;

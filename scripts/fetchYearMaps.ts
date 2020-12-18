@@ -6,6 +6,7 @@ import { Beatmapset } from "../../CorsaceModels/MCA_AYIM/beatmapset";
 import { Beatmap } from "../../CorsaceModels/MCA_AYIM/beatmap";
 import { User, OAuth } from "../../CorsaceModels/user";
 import { UsernameChange } from "../../CorsaceModels/usernameChange";
+import { MCAEligibility } from "../../CorsaceModels/MCA_AYIM/mcaEligibility";
 
 const config = new Config();
 const args = process.argv.slice(2); // Year to get the maps for
@@ -52,6 +53,13 @@ const langs = [
     "other",
 ];
 
+const modeList = [
+    "standard",
+    "taiko",
+    "fruits",
+    "mania",
+];
+
 function createSet(map: any): Beatmapset {
     
     const dbSet = new Beatmapset;
@@ -67,6 +75,8 @@ function createSet(map: any): Beatmapset {
 
     dbSet.genre = genres[map.genre_id];
     dbSet.language = langs[map.language_id];
+
+    dbSet.tags = map.tags;
 
     dbSet.favourites = parseInt(map.favourite_count);
 
@@ -204,8 +214,18 @@ async function fetchYearMaps(): Promise<void> {
                         dbUser.osu = new OAuth;
                         dbUser.osu.userID = map.creator_id;
                         dbUser.osu.username = map.creator;
+                        dbUser.osu.avatar = "https://a.ppy.sh/" + map.creator_id;
                         dbUser.beatmapsets = [dbSet];
                         await dbUser.save();
+
+                        if (!map.version.includes("'")) {
+                            const eligibility = new MCAEligibility();
+                            eligibility.year = year;
+                            eligibility.user = dbUser;
+                            eligibility[modeList[map.mode]] = true;
+                            eligibility.storyboard = true;
+                            await eligibility.save();
+                        }
                     } else {
                         dbUser.beatmapsets.push(dbSet);
                         if (dbUser.osu.username !== map.creator && !dbUser.otherNames.some(v => v.name === map.creator)) { // Check for username change
@@ -223,6 +243,21 @@ async function fetchYearMaps(): Promise<void> {
                             await nameChange.save();
                         } else
                             await dbUser.save();
+                        
+                        if (!map.version.includes("'")) {
+                            let eligibility = await MCAEligibility.findOne({ relations: ["user"], where: { year: year, user: dbUser }});
+                            if (!eligibility) {
+                                eligibility = new MCAEligibility();
+                                eligibility.year = year;
+                                eligibility.user = dbUser;
+                            }
+                            
+                            if (!eligibility[modeList[map.mode]]) {
+                                eligibility[modeList[map.mode]] = true;
+                                eligibility.storyboard = true;
+                                await eligibility.save();
+                            }
+                        }
                     }
 
                     date = map.approved_date;

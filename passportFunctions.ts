@@ -24,7 +24,7 @@ async function discordPassport(accessToken: string, refreshToken: string, profil
         user.discord.username = profile.username;
         user.discord.accessToken = accessToken;
         user.discord.refreshToken = refreshToken;
-        user.discord.avatar = (await discordClient.fetchUser(profile.id)).avatarURL;
+        user.discord.avatar = (await discordClient.users.fetch(profile.id)).displayAvatarURL();
         user.lastLogin = user.discord.lastVerified = new Date;
 
         done(null, user);
